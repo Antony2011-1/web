@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #6a1b9a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .register-container {
+            background-color: rgba(255, 255, 255, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .register-container h2 {
+            margin-bottom: 20px;
+            color: #4a148c;
+        }
+        .register-container input[type="text"],
+        .register-container input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .register-container button {
+            background-color: #4a148c;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .register-container button:hover {
+            background-color: #6a1b9a;
+        }
+        .register-container a {
+            color: #4a148c;
+            text-decoration: none;
+        }
+        .register-container a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <h2>Register</h2>
+        <form id="register-form">
+            <input type="text" id="username" placeholder="Username" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <input type="password" id="confirm-password" placeholder="Confirm Password" required>
+            <input type="text" id="register-key" placeholder="Registration Key" required>
+            <br><br>
+            <button type="submit">Register</button>
+        </form>
+        <p>Already have an account? <a href="login.html">Ya tengo una cuenta</a></p>
+    </div>
+    <script>
+        // Inicializar claves válidas y usadas
+        const validKeys = JSON.parse(localStorage.getItem('validKeys')) || ["KEY1", "KEY2", "KEY3"];
+        const usedKeys = JSON.parse(localStorage.getItem('usedKeys')) || [];
+        
+        // Obtener usuarios registrados
+        const users = JSON.parse(localStorage.getItem('users')) || [];
+
+        document.getElementById('register-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const registerKey = document.getElementById('register-key').value;
+
+            if (password === confirmPassword) {
+                if (validKeys.includes(registerKey) && !usedKeys.includes(registerKey)) {
+                    // Añadir usuario a localStorage
+                    users.push({ username, password });
+                    localStorage.setItem('users', JSON.stringify(users));
+
+                    // Marcar la clave como usada
+                    usedKeys.push(registerKey);
+                    localStorage.setItem('usedKeys', JSON.stringify(usedKeys));
+
+                    // Preguntar si desea guardar credenciales
+                    const saveCredentials = confirm('Do you want to save your credentials?');
+                    if (saveCredentials) {
+                        localStorage.setItem('savedUsername', username);
+                        localStorage.setItem('savedPassword', password);
+                    }
+
+                    alert('Registered successfully!');
+                    window.location.href = 'login.html';
+                } else {
+                    alert('Wrong key or key already used!');
+                }
+            } else {
+                alert('Passwords do not match!');
+            }
+        });
+    </script>
+</body>
+</html>

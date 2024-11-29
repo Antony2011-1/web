@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #6a1b9a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .admin-container {
+            background-color: rgba(255, 255, 255, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 80%;
+            max-width: 600px;
+        }
+        .admin-container h2 {
+            margin-bottom: 20px;
+            color: #4a148c;
+        }
+        .admin-container button {
+            background-color: #4a148c;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        .admin-container button:hover {
+            background-color: #6a1b9a;
+        }
+        .admin-container input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .admin-container table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .admin-container table, th, td {
+            border: 1px solid #ccc;
+        }
+        .admin-container th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        .admin-container th {
+            background-color: #4a148c;
+            color: white;
+        }
+        .admin-container p {
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <h2>Admin Panel</h2>
+        <button onclick="fetchUserCount()">Get User Count</button>
+        <p id="user-count"></p>
+        <hr>
+        <h3>Registered Users</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Password</th>
+                    <th>HWID</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="user-list">
+            </tbody>
+        </table>
+        <hr>
+        <form id="delete-user-form">
+            <input type="text" id="username-to-delete" placeholder="Username to delete" required>
+            <button type="submit">Delete User</button>
+        </form>
+        <p id="delete-status"></p>
+        <hr>
+        <h3>Used Registration Keys</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Key</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="key-list">
+            </tbody>
+        </table>
+    </div>
+    <script>
+        // Verificar si el administrador ha iniciado sesión
+        window.onload = function() {
+            const adminLoggedIn = sessionStorage.getItem('adminLoggedIn');
+            if (!adminLoggedIn) {
+                window.location.href = 'login.html';
+            } else {
+                fetchUserCount();
+                fetchUserList();
+                fetchKeyList();
+            }
+        };
+
+        // Mostrar el conteo de usuarios
+        function fetchUserCount() {
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            document.getElementById('user-count').innerText = `Number of users: ${users.length}`;
+        }
+
+        // Mostrar la lista de usuarios
+        function fetchUserList() {
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            const userList = document.getElementById('user-list');
+
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                const usernameCell = document.createElement('td');
+                const passwordCell = document.createElement('td');
+                const hwidCell = document.createElement('td');
+                const actionCell = document.createElement('td');
+                
+                usernameCell.innerText = user.username;
+                passwordCell.innerText = user.password;
+                hwidCell.innerText = user.hwid || 'N/A';
+                
+                const resetButton = document.createElement('button');
+                resetButton.innerText = 'Reset HWID';
+                resetButton.onclick = function() {
+                    resetHWID(user.username);
+                };
+                actionCell.appendChild(resetButton);
+                
+                row.appendChild(usernameCell);
+                row.appendChild(passwordCell);
+                row.appendChild(hwidCell);
+                row.appendChild(actionCell);
+                userList.appendChild(row);
+            });
+        }
+
+        // Manejar la eliminación de usuarios
+        document.getElementById('delete-user-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const usernameToDelete = document.getElementById('username-to-delete').value;
+
+            let users = JSON.parse(localStorage.getItem('users')) || [];
+            users = users.filter(user => user.username !== usernameToDelete);
+            localStorage.setItem('users', JSON.stringify(users));
+
+            document.getElementById('delete-status').innerText = `User ${usernameToDelete} deleted successfully.`;
+            fetchUserCount();
+            document.getElementById('user-list').innerHTML = '';
+            fetchUserList();
+        });
+
+        // Manejar la eliminación de claves usadas
+        function deleteKey(key) {
+            let usedKeys = JSON.parse(localStorage.getItem('usedKeys')) || [];
+            usedKeys = usedKeys.filter(usedKey => usedKey !== key);
+            localStorage.setItem('usedKeys', JSON.stringify(usedKeys));
+            document.getElementById('key-list').innerHTML = '';
+            fetchKeyList();
+        }
+
+        // Mostrar la lista de claves usadas
+        function fetchKeyList() {
+            const usedKeys = JSON.parse(localStorage.getItem('usedKeys')) || [];
+            const keyList = document.getElementById('key-list');
+
+            usedKeys.forEach(key => {
+                const row = document.createElement('tr');
+                const keyCell = document.createElement('td');
+                const actionCell = document.createElement('td');
+                
+                keyCell.innerText = key;
+                const deleteButton = document.createElement('button');
+                deleteButton.innerText = 'Delete';
+                deleteButton.onclick = function() {
+                    deleteKey(key);
+                };
+                actionCell.appendChild(deleteButton);
+                
+                row.appendChild(keyCell);
+                row.appendChild(actionCell);
+                keyList.appendChild(row);
+            });
+        }
+
+        // Resetear HWID del usuario
+        function resetHWID(username) {
+            let users = JSON.parse(localStorage.getItem('users')) || [];
+            users = users.map(user => {
+                if (user.username === username) {
+                    user.hwid = '';
+                }
+                return user;
+            });
+            localStorage.setItem('users', JSON.stringify(users));
+            document.getElementById('user-list').innerHTML = '';
+            fetchUserList();
+        }
+    </script>
+</body>
+</html>
